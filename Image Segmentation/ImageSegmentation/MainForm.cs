@@ -15,8 +15,7 @@ namespace ImageTemplate
             InitializeComponent();
         }
 
-        RGBPixel[,] ImageMatrix;
-
+        public RGBPixel[,] ImageMatrix;
         private void btnOpen_Click(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
