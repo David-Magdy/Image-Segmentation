@@ -11,13 +11,28 @@ using static System.Net.Mime.MediaTypeNames;
 namespace GraphConstruction
 {
 
-    public struct Node
+    public struct Node : IEquatable<Node>
     {
         public int i, j;
         public Node(int i, int j)
         {
             this.i = i;
             this.j = j;
+        }
+
+        public bool Equals(Node other)
+        {
+            return i == other.i && j == other.j;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Node other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return (i << 16) | j;
         }
     }
 
@@ -28,6 +43,7 @@ namespace GraphConstruction
         private int columns;
         private int rows;
 
+        private double[,] channel;
 
         private int[] dx = { 1, 1, 1, -1, -1, -1, 0, 0 };
         private int[] dy = { 1, -1, 0, 1, -1, 0, 1, -1 };
@@ -37,21 +53,16 @@ namespace GraphConstruction
             return (x >= 0 && y >= 0 && x < rows && y < columns);
         }
 
-        private double getIntensity(RGBPixel[,] image, int i, int j, int x, int y)
+        private double getWeight(int i, int j, int x, int y)
         {
-            double intensity1 = (image[i, j].red + image[i, j].green + image[i, j].blue) / 3.0;
-            double intensity2 = (image[x, y].red + image[x, y].green + image[x, y].blue) / 3.0;
-
-            return Math.Abs(intensity1 - intensity2);
+            return Math.Abs(channel[i, j] - channel[x, y]);
         }
 
-        public Graph(string imagePath, double sigma, int filterSize)
+        public Graph(double[,] channel)
         {
-            RGBPixel[,] image = ImageOperations.OpenImage(imagePath);
-            image = ImageOperations.GaussianFilter1D(image, filterSize, sigma);
-
-            columns = ImageOperations.GetWidth(image);
-            rows = ImageOperations.GetHeight(image);
+            this.channel = channel;
+            rows = channel.GetLength(0);
+            columns = channel.GetLength(1);
 
             adj = new Dictionary<Node, List<Tuple<Node, double>>>();
 
@@ -59,25 +70,22 @@ namespace GraphConstruction
             {
                 for (int j = 0; j < columns; ++j)
                 {
+                    Node u = new Node(i, j);
+
+                    adj[u] = new List<Tuple<Node, double>>();
+
                     for (int k = 0; k < 8; ++k)
                     {
                         int new_x = i + dx[k];
                         int new_y = j + dy[k];
+
                         if (valid(new_x, new_y))
                         {
-                            Node u = new Node(i, j);
                             Node v = new Node(new_x, new_y);
 
-                            double weight = getIntensity(image, i, j, new_x, new_y);
-
-                            if (!adj.ContainsKey(u))
-                                adj[u] = new List<Tuple<Node, double>>();
-
-                            if (!adj.ContainsKey(v))
-                                adj[v] = new List<Tuple<Node, double>>();
+                            double weight = getWeight(i, j, new_x, new_y);
 
                             adj[u].Add(new Tuple<Node, double>(v, weight));
-                            adj[v].Add(new Tuple<Node, double>(u, weight));
                         }
                     }
                 }
