@@ -10,7 +10,6 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace GraphConstruction
 {
-
     public struct Node : IEquatable<Node>
     {
         public int i, j;
