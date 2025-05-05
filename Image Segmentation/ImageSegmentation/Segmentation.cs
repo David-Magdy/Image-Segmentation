@@ -23,14 +23,14 @@ namespace Segmenetation
             blueLabels = new Dictionary<Node, int>();
             finalLabels = new Dictionary<Node, int>();
         }
-        public void Segment(double sigma, double k, int filterSize = 100)
+        public void Segment(double sigma, double k, int filterSize = 0)
         {
             rows = ImageMatrix.GetLength(0);
             columns = ImageMatrix.GetLength(1);
 
             // Apply Gaussian blur with a larger sigma to smooth more
-            RGBPixel[,] blurredImage = ImageOperations.GaussianFilter1D(ImageMatrix, filterSize, sigma);
-
+            //RGBPixel[,] blurredImage = ImageOperations.GaussianFilter1D(ImageMatrix, filterSize, sigma);
+            RGBPixel[,] blurredImage = ImageMatrix; 
             redGrid = new Graph(blurredImage, "Red");
             greenGrid = new Graph(blurredImage, "Green");
             blueGrid = new Graph(blurredImage, "Blue");
@@ -120,6 +120,26 @@ namespace Segmenetation
         public int getNumberOfSegments()
         {
             return finalLabels.Values.Distinct().Count();
+        }
+
+        public List<int> GetSegmentSizes()
+        {
+            // Count segment sizes
+            Dictionary<int, int> segmentSizes = new Dictionary<int, int>();
+            foreach (var label in finalLabels.Values)
+            {
+                if (segmentSizes.ContainsKey(label))
+                {
+                    segmentSizes[label]++;
+                }
+                else
+                {
+                    segmentSizes[label] = 1;
+                }
+            }
+
+            // Return sizes sorted in decreasing order
+            return segmentSizes.Values.OrderByDescending(size => size).ToList();
         }
 
         public void SaveOutput(string textFilePath, string imageFilePath)

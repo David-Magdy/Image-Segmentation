@@ -11,8 +11,9 @@ namespace ImageTemplate
     public partial class MainForm : Form
     {
         private Segmentation segmentation;
-        private TextBox txtSegmentSigma, txtK;
+        private TextBox txtSegmentSigma, txtK, txtSegmentSizes;
         private Label lblSegmentSigma, lblK;
+
         public RGBPixel[,] ImageMatrix;
 
         public MainForm()
@@ -23,11 +24,11 @@ namespace ImageTemplate
 
         private void InitializeSegmentationControls()
         {
-            // Initialize Segment Sigma Label and TextBox
+            // Initialize Segment Sigma Label and Text(specifically for this example)
             lblSegmentSigma = new Label
             {
                 Text = "Segment Sigma:",
-                Location = new Point(16, 480), // Below panels (y=471), matching screenshot
+                Location = new Point(16, 480),
                 Size = new Size(80, 20),
                 Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold)
             };
@@ -65,11 +66,22 @@ namespace ImageTemplate
             var lblSegmentCount = new Label
             {
                 Text = "Segments: 0",
-                Location = new Point(466, 510), // Below text boxes, aligned with buttons
+                Location = new Point(466, 510),
                 Size = new Size(100, 20),
                 Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold)
             };
             this.Controls.Add(lblSegmentCount);
+
+            // Add TextBox for segment sizes
+            txtSegmentSizes = new TextBox
+            {
+                Location = new Point(16, 510),
+                Size = new Size(220, 100),
+                Multiline = true,
+                ReadOnly = true,
+                Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular)
+            };
+            this.Controls.Add(txtSegmentSizes);
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -145,7 +157,7 @@ namespace ImageTemplate
 
             try
             {
-                // Use a temporary file to save the segmented image
+                // Use a temporary file to save the segmented image and text output
                 string tempImagePath = System.IO.Path.GetTempFileName() + ".png";
                 string tempTextPath = System.IO.Path.GetTempFileName() + ".txt";
 
@@ -163,6 +175,10 @@ namespace ImageTemplate
                 {
                     lblSegmentCount.Text = $"Segments: {segmentCount}";
                 }
+
+                // Display segment sizes in the TextBox
+                var segmentSizes = segmentation.GetSegmentSizes();
+                txtSegmentSizes.Text = $"{segmentCount}\r\n{string.Join("\r\n", segmentSizes)}";
 
                 // Clean up temporary files
                 System.IO.File.Delete(tempImagePath);
