@@ -12,7 +12,7 @@ namespace Segmenetation
     {
         public Graph redGrid, greenGrid, blueGrid;
         public Dictionary<Node, int> redLabels, greenLabels, blueLabels;
-        public Dictionary<Node, int> finalLabels;
+        public Dictionary<Node, int> finalLabels; // Intersect Three Labels
         public int rows, columns;
         public RGBPixel[,] ImageMatrix { get; set; }
 
@@ -29,11 +29,12 @@ namespace Segmenetation
             columns = ImageMatrix.GetLength(1);
 
             // Apply Gaussian blur with a larger sigma to smooth more
-            //RGBPixel[,] blurredImage = ImageOperations.GaussianFilter1D(ImageMatrix, filterSize, sigma);
-            RGBPixel[,] blurredImage = ImageMatrix; 
-            redGrid = new Graph(blurredImage, "Red");
-            greenGrid = new Graph(blurredImage, "Green");
-            blueGrid = new Graph(blurredImage, "Blue");
+             //RGBPixel[,] blurredImage = ImageOperations.GaussianFilter1D(ImageMatrix, filterSize, sigma);
+             RGBPixel[,] noGaussianFilterImage = ImageMatrix;
+            
+            redGrid = new Graph(noGaussianFilterImage, "Red");
+            greenGrid = new Graph(noGaussianFilterImage, "Green");
+            blueGrid = new Graph(noGaussianFilterImage, "Blue");
 
             // Segment each channel
             redLabels = SegmentChannel(redGrid, k);
@@ -102,7 +103,7 @@ namespace Segmenetation
         {
             Dictionary<(int, int, int), int> labelTripletToFinal = new Dictionary<(int, int, int), int>();
             int finalLabelCount = 0;
-
+            
             for (int i = 0; i < rows; i++)
             {
                 for (int j = 0; j < columns; j++)
@@ -171,24 +172,13 @@ namespace Segmenetation
                 }
             }
 
-            // Generate visualization image with fixed colors for better distinction
             RGBPixel[,] outputImage = new RGBPixel[rows, columns];
-            var fixedColors = new (byte r, byte g, byte b)[]
-            {
-                (255, 0, 0),   // Red
-                (0, 255, 0),   // Green
-                (0, 0, 255),   // Blue
-                (255, 255, 0), // Yellow
-                (255, 0, 255), // Magenta
-                (0, 255, 255), // Cyan
-            };
+            Random rand = new Random();
             Dictionary<int, (byte r, byte g, byte b)> labelColors = new Dictionary<int, (byte, byte, byte)>();
-            int colorIndex = 0;
 
             foreach (var label in finalLabels.Values.Distinct())
             {
-                labelColors[label] = fixedColors[colorIndex % fixedColors.Length];
-                colorIndex++;
+                labelColors[label] = ((byte)rand.Next(256), (byte)rand.Next(256), (byte)rand.Next(256));
             }
 
             for (int i = 0; i < rows; i++)

@@ -27,7 +27,7 @@ namespace ImageTemplate
             // Initialize Segment Sigma Label and Text(specifically for this example)
             lblSegmentSigma = new Label
             {
-                Text = "Segment Sigma:",
+                Text = "Sigma:",
                 Location = new Point(16, 480),
                 Size = new Size(80, 20),
                 Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold)

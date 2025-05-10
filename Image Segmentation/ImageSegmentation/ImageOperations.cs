@@ -167,11 +167,15 @@ namespace ImageTemplate
             RGBPixelD[,] VerFiltered = new RGBPixelD[Height, Width];
             RGBPixel[,] Filtered = new RGBPixel[Height, Width];
 
-           
+
             // Create Filter in Spatial Domain:
             //=================================
             //make the filter ODD size
-            if (filterSize % 2 == 0) filterSize++;
+            if (filterSize == 0)
+            {
+                filterSize = (int)Math.Ceiling(6 * sigma);
+            }
+            if (filterSize % 2 == 0) filterSize++; // Ensure odd size
 
             double[] Filter = new double[filterSize];
 

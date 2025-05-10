@@ -43,6 +43,12 @@ namespace Segmenetation
             }
             return parent[x];
         }
+        public bool isConnected(Node u, Node v)
+        {
+            u = Find(u);
+            v = Find(v);
+            return u.Equals(v);
+        }
 
         public void Union(Node x, Node y, double edgeWeight)
         {
@@ -69,12 +75,6 @@ namespace Segmenetation
             }
         }
 
-        public bool isConnected(Node u, Node v)
-        {
-            u = Find(u);
-            v = Find(v);
-            return u.Equals(v);
-        }
         public int GetSize(Node x)
         {
             return size[Find(x)];
