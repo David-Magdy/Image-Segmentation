@@ -55,23 +55,16 @@ namespace Segmenetation
             Node rootX = Find(x);
             Node rootY = Find(y);
 
-            if (isConnected(x, y) == false)
+            if (!isConnected(x, y))
             {
-                // Merge smaller component into larger for efficiency
                 if (size[rootX] < size[rootY])
                 {
-                    (rootX, rootY) = (rootY, rootX); // Swap
+                    (rootX, rootY) = (rootY, rootX);
                 }
 
                 parent[rootY] = rootX;
                 size[rootX] += size[rootY];
-                // Update max internal edge: take the max of the two components' max edges and the merging edge
                 maxInternalEdge[rootX] = Math.Max(Math.Max(maxInternalEdge[rootX], maxInternalEdge[rootY]), edgeWeight);
-            }
-            else
-            {
-                // Update max internal edge if within the same component
-                maxInternalEdge[rootX] = Math.Max(maxInternalEdge[rootX], edgeWeight);
             }
         }
 

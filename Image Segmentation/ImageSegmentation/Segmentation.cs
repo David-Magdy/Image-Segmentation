@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using ImageTemplate;
 using GraphConstruction;
+using System.Threading.Tasks;
 
 namespace Segmenetation
 {
@@ -23,23 +24,25 @@ namespace Segmenetation
             blueLabels = new Dictionary<Node, int>();
             finalLabels = new Dictionary<Node, int>();
         }
-        public void Segment(double sigma, double k, int filterSize = 0)
+        public void Segment(double sigma, double k, int filterSize = 5)
         {
             rows = ImageMatrix.GetLength(0);
             columns = ImageMatrix.GetLength(1);
 
             // Apply Gaussian blur with a larger sigma to smooth more
-             //RGBPixel[,] blurredImage = ImageOperations.GaussianFilter1D(ImageMatrix, filterSize, sigma);
-             RGBPixel[,] noGaussianFilterImage = ImageMatrix;
+             RGBPixel[,] blurredImage = ImageOperations.GaussianFilter1D(ImageMatrix, filterSize, sigma);
+             //RGBPixel[,] noGaussianFilterImage = ImageMatrix;
             
-            redGrid = new Graph(noGaussianFilterImage, "Red");
-            greenGrid = new Graph(noGaussianFilterImage, "Green");
-            blueGrid = new Graph(noGaussianFilterImage, "Blue");
+            redGrid = new Graph(blurredImage, "Red");
+            greenGrid = new Graph(blurredImage, "Green");
+            blueGrid = new Graph(blurredImage, "Blue");
 
             // Segment each channel
-            redLabels = SegmentChannel(redGrid, k);
-            greenLabels = SegmentChannel(greenGrid, k);
-            blueLabels = SegmentChannel(blueGrid, k);
+            Parallel.Invoke(
+                () => redLabels = SegmentChannel(redGrid, k),
+                () => greenLabels = SegmentChannel(greenGrid, k),
+                () => blueLabels = SegmentChannel(blueGrid, k)
+            );
             IntersectLabels();
         }
 

@@ -21,7 +21,7 @@ namespace GraphConstruction
 
         public bool Equals(Node other)
         {
-            return i == other.i && j == other.j;
+            return (i == other.i && j == other.j);
         }
 
         public override bool Equals(object obj)
