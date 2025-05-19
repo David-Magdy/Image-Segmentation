@@ -28,6 +28,9 @@ namespace Segmenetation
         {
             rows = ImageMatrix.GetLength(0);
             columns = ImageMatrix.GetLength(1);
+            
+            Graph.rows = rows;
+            Graph.columns = columns;
 
             // Apply Gaussian blur with a larger sigma to smooth more
              RGBPixel[,] blurredImage = ImageOperations.GaussianFilter1D(ImageMatrix, filterSize, sigma);
@@ -47,23 +50,15 @@ namespace Segmenetation
         }
 
         private Dictionary<Node, int> SegmentChannel(Graph graph, double k)
-        {
+{
             DSU dsu = new DSU(rows, columns);
             Dictionary<Node, int> labels = new Dictionary<Node, int>();
 
             // Collect edges
-            List<(Node u, Node v, double weight)> edges = new List<(Node, Node, double)>();
-            foreach (var node in graph.adj)
-            {
-                foreach (var (neighbor, weight) in node.Value)
-                {
-                   edges.Add((node.Key, neighbor, weight));
-                }
-            }
+            List<(Node u, Node v, double weight)> edges = graph.getEdges();
 
             // Sort edges
             edges.Sort((a, b) => a.weight.CompareTo(b.weight));
-
             // Process edges
             foreach (var (u, v, weight) in edges)
             {
@@ -81,25 +76,27 @@ namespace Segmenetation
                         dsu.Union(u, v, weight);
                     }
                 }
-                else
-                {
-                    dsu.Union(u, v, weight);
-                }
             }
 
             int labelCount = 0;
             // Assign labels
             Dictionary<Node, int> rootToLabel = new Dictionary<Node, int>();
-            foreach (var node in graph.adj.Keys)
+            for (int i = 0; i < rows; ++i)
             {
-                Node root = dsu.Find(node);
-                if (!rootToLabel.ContainsKey(root))
+                for (int j = 0; j < columns; ++j)
                 {
-                    rootToLabel[root] = labelCount++;
+                    Node node = new Node(i, j);
+                    Node root = dsu.Find(node);
+                    if (!rootToLabel.ContainsKey(root))
+                    {
+                        rootToLabel[root] = labelCount++;
+                    }
+                    labels[node] = rootToLabel[root];
+
                 }
-                labels[node] = rootToLabel[root];
             }
 
+            int comp = labels.Values.Distinct().Count();
             return labels;
         }
         private void IntersectLabels()

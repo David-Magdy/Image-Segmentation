@@ -61,7 +61,6 @@ namespace Segmenetation
                 {
                     (rootX, rootY) = (rootY, rootX);
                 }
-
                 parent[rootY] = rootX;
                 size[rootX] += size[rootY];
                 maxInternalEdge[rootX] = Math.Max(Math.Max(maxInternalEdge[rootX], maxInternalEdge[rootY]), edgeWeight);

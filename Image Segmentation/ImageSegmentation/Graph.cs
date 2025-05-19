@@ -31,16 +31,13 @@ namespace GraphConstruction
 
         public override int GetHashCode()
         {
-            return (i << 16) | j;
+            return i * Graph.columns + j;
         }
     }
 
         public class Graph
         {
-            public Dictionary<Node, List<Tuple<Node, double>>> adj;
-
-            private int columns;
-            private int rows;
+            public static int rows, columns;
 
             private double[,] channel;
 
@@ -57,12 +54,35 @@ namespace GraphConstruction
                 return Math.Abs(channel[i, j] - channel[x, y]);
             }
 
+            public List<(Node u, Node v, double weight)> getEdges()
+            {
+                List<(Node u, Node v, double weight)> edges = new List<(Node, Node, double)>();
+
+                for (int i = 0; i < rows; ++i)
+                {
+                    for (int j = 0; j < columns; ++j)
+                    {
+                        Node u = new Node(i, j);
+                        for (int k = 0; k < 8; ++k)
+                        {
+                            int new_x = i + dx[k];
+                            int new_y = j + dy[k];
+
+                            if (valid(new_x, new_y))
+                            {
+                                Node v = new Node(new_x, new_y);
+                                double weight = getWeight(i, j, new_x, new_y);
+                                edges.Add((u, v, weight));
+                            }
+                        }
+                    }
+                }
+                return edges;
+            }
             public Graph(RGBPixel[,] ImageMatrix, string channelType)
             {
-                rows = ImageMatrix.GetLength(0);
-                columns = ImageMatrix.GetLength(1);
+                
 
-                adj = new Dictionary<Node, List<Tuple<Node, double>>>();
                 // Create the channel matrix based on the selected color
                 channel = new double[rows, columns];
 
@@ -77,29 +97,6 @@ namespace GraphConstruction
                             channel[i, j] = ImageMatrix[i, j].green;
                         else if (channelType == "Blue")
                             channel[i, j] = ImageMatrix[i, j].blue;
-                    }
-                }
-
-                // Construct the graph with the weights based on the selected color channel
-                for (int i = 0; i < rows; ++i)
-                {
-                    for (int j = 0; j < columns; ++j)
-                    {
-                        Node u = new Node(i, j);
-                        adj[u] = new List<Tuple<Node, double>>();
-
-                        for (int k = 0; k < 8; ++k)
-                        {
-                            int new_x = i + dx[k];
-                            int new_y = j + dy[k];
-
-                            if (valid(new_x, new_y))
-                            {
-                                Node v = new Node(new_x, new_y);
-                                double weight = getWeight(i, j, new_x, new_y);
-                                adj[u].Add(new Tuple<Node, double>(v, weight));
-                            }
-                        }
                     }
                 }
             }
