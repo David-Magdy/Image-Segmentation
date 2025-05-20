@@ -165,7 +165,7 @@ namespace ImageTemplate
             try
             {
                 // Use a temporary file to save the segmented image and text output
-                string tempImagePath = System.IO.Path.GetTempFileName() + ".png";
+                string tempImagePath = System.IO.Path.GetTempFileName() + ".bmp";
                 string tempTextPath = System.IO.Path.GetTempFileName() + ".txt";
 
                 // Save the segmentation results

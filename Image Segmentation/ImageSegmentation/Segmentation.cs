@@ -60,7 +60,25 @@ namespace Segmentation
         {
             DSU dsu = new DSU(rows, columns);
             var edges = graph.BuildEdges(channel);
-            edges.Sort((a, b) => a.Weight.CompareTo(b.Weight));
+
+            //edges.Sort((a, b) => a.Weight.CompareTo(b.Weight));
+
+            //counting sort since weight is in range [0, 255]
+            List<Edge>[] weights = new List<Edge>[256];
+
+            for (int i = 0; i < 256; i++)
+                weights[i] = new List<Edge>();
+
+            foreach (var edge in edges)
+            {
+                weights[edge.Weight].Add(edge);
+            }
+
+            edges.Clear();
+            for (int i = 0; i < 255; i++)
+            {
+                edges.AddRange(weights[i]);
+            }
 
             // Process edges
             foreach (var edge in edges)
