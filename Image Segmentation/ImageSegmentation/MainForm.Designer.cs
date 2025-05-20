@@ -33,7 +33,7 @@ namespace ImageTemplate
             this.btnOpen = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.btnShow = new System.Windows.Forms.Button(); // Replaced btnGaussSmooth
+            this.btnShow = new System.Windows.Forms.Button();
             this.txtHeight = new System.Windows.Forms.TextBox();
             this.txtWidth = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
@@ -96,9 +96,10 @@ namespace ImageTemplate
             this.label2.Location = new System.Drawing.Point(807, 484);
             this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(184, 24);
+            this.label2.Size = new System.Drawing.Size(197, 24);
             this.label2.TabIndex = 4;
-            this.label2.Text = "Smoothed Image";
+            this.label2.Text = "Segmented Image";
+            this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
             // btnShow
             // 
@@ -110,7 +111,7 @@ namespace ImageTemplate
             this.btnShow.TabIndex = 5;
             this.btnShow.Text = "Show";
             this.btnShow.UseVisualStyleBackColor = true;
-            this.btnShow.Click += new System.EventHandler(this.btnShow_Click); // New event handler
+            this.btnShow.Click += new System.EventHandler(this.btnShow_Click);
             // 
             // txtHeight
             // 

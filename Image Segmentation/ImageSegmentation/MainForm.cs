@@ -1,16 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using ImageTemplate;
-using Segmenetation;
+using Seg = Segmentation.Segmentation;
 
 namespace ImageTemplate
 {
     public partial class MainForm : Form
     {
-        private Segmentation segmentation;
+        private Seg segmentation;
         private TextBox txtSegmentSigma, txtK, txtSegmentSizes;
         private Label lblSegmentSigma, lblK;
 
@@ -89,6 +90,11 @@ namespace ImageTemplate
             // Empty or add initialization if needed
         }
 
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
         private void btnOpen_Click(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
@@ -102,7 +108,8 @@ namespace ImageTemplate
                     txtWidth.Text = ImageOperations.GetWidth(ImageMatrix).ToString();
                     txtHeight.Text = ImageOperations.GetHeight(ImageMatrix).ToString();
 
-                    segmentation = new Segmentation { ImageMatrix = ImageMatrix };
+                    segmentation = new Seg { ImageMatrix = ImageMatrix };
+
                 }
                 catch (Exception ex)
                 {

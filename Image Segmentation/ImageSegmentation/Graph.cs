@@ -1,104 +1,90 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Drawing;
-using System.Windows.Forms;
-using System.Drawing.Imaging;
-using ImageTemplate;
-using static System.Net.Mime.MediaTypeNames;
 
-
-namespace GraphConstruction
+namespace Segmentation
 {
-    public struct Node : IEquatable<Node>
+    public struct Edge
     {
-        public int i, j;
-        public Node(int i, int j)
-        {
-            this.i = i;
-            this.j = j;
-        }
+        public int U { get; }
+        public int V { get; }
+        public short Weight { get; }
 
-        public bool Equals(Node other)
+        public Edge(int u, int v, short weight)
         {
-            return (i == other.i && j == other.j);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is Node other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return i * Graph.columns + j;
+            U = u;
+            V = v;
+            Weight = weight;
         }
     }
 
-        public class Graph
+    public class Graph
+    {
+        private int rows;
+        private int columns;
+
+        public Graph(int rows, int columns)
         {
-            public static int rows, columns;
+            this.rows = rows;
+            this.columns = columns;
+        }
 
-            private double[,] channel;
+        public int getPixelIndex(int i , int j)
+        {
+            return i * columns + j;
+        }
 
-            private int[] dx = { 1, 1, 1, -1, -1, -1, 0, 0 };
-            private int[] dy = { 1, -1, 0, 1, -1, 0, 1, -1 };
+        private bool valid(int i , int j)
+        {
+            return (i >= 0 && i < rows && j >= 0 && j < columns);
+        }
 
-            private bool valid(int x, int y)
+        public List<Edge> BuildEdges(short[,] channel)
+        {
+            var edges = new List<Edge>();
+            short[] dx = { 1, 1, 1, 0 };
+            short[] dy = { 0, 1, -1, 1 };
+
+            for (int i = 0; i < rows; i++)
             {
-                return (x >= 0 && y >= 0 && x < rows && y < columns);
-            }
-
-            private double getWeight(int i, int j, int x, int y)
-            {
-                return Math.Abs(channel[i, j] - channel[x, y]);
-            }
-
-            public List<(Node u, Node v, double weight)> getEdges()
-            {
-                List<(Node u, Node v, double weight)> edges = new List<(Node, Node, double)>();
-
-                for (int i = 0; i < rows; ++i)
+                for (int j = 0; j < columns; j++)
                 {
-                    for (int j = 0; j < columns; ++j)
+                    int uIndex = getPixelIndex(i, j);
+                    for (int k = 0; k < 4; k++)
                     {
-                        Node u = new Node(i, j);
-                        for (int k = 0; k < 8; ++k)
+                        int ni = i + dx[k];
+                        int nj = j + dy[k];
+                        if (valid(ni,nj))
                         {
-                            int new_x = i + dx[k];
-                            int new_y = j + dy[k];
-
-                            if (valid(new_x, new_y))
-                            {
-                                Node v = new Node(new_x, new_y);
-                                double weight = getWeight(i, j, new_x, new_y);
-                                edges.Add((u, v, weight));
-                            }
+                            int vIndex = getPixelIndex(ni,nj);
+                            short weight = (short)Math.Abs(channel[i, j] - channel[ni, nj]);
+                            edges.Add(new Edge(uIndex, vIndex, weight));
                         }
                     }
                 }
-                return edges;
             }
-            public Graph(RGBPixel[,] ImageMatrix, string channelType)
+
+            return edges;
+        }
+
+        public List<int> GetNeighbors(int i , int j)
+        {
+            var neighbors = new List<int>();
+
+            // down, down left, down right, right
+            short[] dx = { 1, 1, 1, 0 };
+            short[] dy = { 0, -1, 1, 1 };
+
+            for (int k = 0; k < 4; k++)
             {
-                
-
-                // Create the channel matrix based on the selected color
-                channel = new double[rows, columns];
-
-                // Fill the channel matrix based on the color (Red, Green, Blue)
-                for (int i = 0; i < rows; ++i)
+                int ni = i + dx[k];
+                int nj = j + dy[k];
+                if (valid(ni,nj))
                 {
-                    for (int j = 0; j < columns; ++j)
-                    {
-                        if (channelType == "Red")
-                            channel[i, j] = ImageMatrix[i, j].red;
-                        else if (channelType == "Green")
-                            channel[i, j] = ImageMatrix[i, j].green;
-                        else if (channelType == "Blue")
-                            channel[i, j] = ImageMatrix[i, j].blue;
-                    }
+                    neighbors.Add(getPixelIndex(ni,nj));
                 }
             }
+
+            return neighbors;
         }
     }
+}

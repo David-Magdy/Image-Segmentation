@@ -4,120 +4,133 @@ using System.Linq;
 using System.Drawing;
 using System.Drawing.Imaging;
 using ImageTemplate;
-using GraphConstruction;
 using System.Threading.Tasks;
+using Segmenetation;
 
-namespace Segmenetation
+namespace Segmentation
 {
     public class Segmentation
     {
-        public Graph redGrid, greenGrid, blueGrid;
-        public Dictionary<Node, int> redLabels, greenLabels, blueLabels;
-        public Dictionary<Node, int> finalLabels; // Intersect Three Labels
+        public Dictionary<int, int> redLabels, greenLabels, blueLabels;
+        public Dictionary<int, int> finalLabels; // Intersect Three Labels
         public int rows, columns;
         public RGBPixel[,] ImageMatrix { get; set; }
+        private Graph graph;
 
         public Segmentation()
         {
-            redLabels = new Dictionary<Node, int>();
-            greenLabels = new Dictionary<Node, int>();
-            blueLabels = new Dictionary<Node, int>();
-            finalLabels = new Dictionary<Node, int>();
+            redLabels = new Dictionary<int, int>();
+            greenLabels = new Dictionary<int, int>();
+            blueLabels = new Dictionary<int, int>();
+            finalLabels = new Dictionary<int, int>();
         }
+
         public void Segment(double sigma, double k, int filterSize = 5)
         {
             rows = ImageMatrix.GetLength(0);
             columns = ImageMatrix.GetLength(1);
-            
-            Graph.rows = rows;
-            Graph.columns = columns;
+            graph = new Graph(rows, columns);
 
-            // Apply Gaussian blur with a larger sigma to smooth more
-             RGBPixel[,] blurredImage = ImageOperations.GaussianFilter1D(ImageMatrix, filterSize, sigma);
-             //RGBPixel[,] noGaussianFilterImage = ImageMatrix;
-            
-            redGrid = new Graph(blurredImage, "Red");
-            greenGrid = new Graph(blurredImage, "Green");
-            blueGrid = new Graph(blurredImage, "Blue");
+            short[,] redChannel = new short[rows, columns];
+            short[,] greenChannel = new short[rows, columns];
+            short[,] blueChannel = new short[rows, columns];
+            //RGBPixel[,] smoothedImage = ImageMatrix; // for sample test cases
+            RGBPixel[,] smoothedImage = ImageOperations.GaussianFilter1D(ImageMatrix, filterSize, sigma);
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < columns; j++)
+                {
+                    redChannel[i, j] = smoothedImage[i, j].red;
+                    greenChannel[i, j] = smoothedImage[i, j].green;
+                    blueChannel[i, j] = smoothedImage[i, j].blue;
+                }
+            }
 
             // Segment each channel
             Parallel.Invoke(
-                () => redLabels = SegmentChannel(redGrid, k),
-                () => greenLabels = SegmentChannel(greenGrid, k),
-                () => blueLabels = SegmentChannel(blueGrid, k)
+                () => redLabels = SegmentChannel(redChannel, k),
+                () => greenLabels = SegmentChannel(greenChannel, k),
+                () => blueLabels = SegmentChannel(blueChannel, k)
             );
-            IntersectLabels();
+            ComputeFinalSegments();
         }
 
-        private Dictionary<Node, int> SegmentChannel(Graph graph, double k)
-{
+        private Dictionary<int, int> SegmentChannel(short[,] channel, double k)
+        {
             DSU dsu = new DSU(rows, columns);
-            Dictionary<Node, int> labels = new Dictionary<Node, int>();
+            var edges = graph.BuildEdges(channel);
+            edges.Sort((a, b) => a.Weight.CompareTo(b.Weight));
 
-            // Collect edges
-            List<(Node u, Node v, double weight)> edges = graph.getEdges();
-
-            // Sort edges
-            edges.Sort((a, b) => a.weight.CompareTo(b.weight));
             // Process edges
-            foreach (var (u, v, weight) in edges)
+            foreach (var edge in edges)
             {
-                Node rootU = dsu.Find(u);
-                Node rootV = dsu.Find(v);
+                int rootU = dsu.Find(edge.U);
+                int rootV = dsu.Find(edge.V);
 
-                if (dsu.isConnected(u, v) == false)
+                if (rootU != rootV)
                 {
                     double thresholdU = dsu.GetMaxInternalEdge(rootU) + (k / dsu.GetSize(rootU));
                     double thresholdV = dsu.GetMaxInternalEdge(rootV) + (k / dsu.GetSize(rootV));
                     double minThreshold = Math.Min(thresholdU, thresholdV);
 
-                    if (weight <= minThreshold)
+                    if (edge.Weight <= minThreshold)
                     {
-                        dsu.Union(u, v, weight);
+                        dsu.Union(edge.U, edge.V, edge.Weight);
                     }
                 }
             }
 
-            int labelCount = 0;
-            // Assign labels
-            Dictionary<Node, int> rootToLabel = new Dictionary<Node, int>();
-            for (int i = 0; i < rows; ++i)
-            {
-                for (int j = 0; j < columns; ++j)
-                {
-                    Node node = new Node(i, j);
-                    Node root = dsu.Find(node);
-                    if (!rootToLabel.ContainsKey(root))
-                    {
-                        rootToLabel[root] = labelCount++;
-                    }
-                    labels[node] = rootToLabel[root];
-
-                }
-            }
-
-            int comp = labels.Values.Distinct().Count();
-            return labels;
+            return AssignLabels(dsu);
         }
-        private void IntersectLabels()
+
+        private Dictionary<int, int> AssignLabels(DSU dsu)
         {
-            Dictionary<(int, int, int), int> labelTripletToFinal = new Dictionary<(int, int, int), int>();
-            int finalLabelCount = 0;
-            
+            var labels = new Dictionary<int, int>();
+            var rootToLabel = new Dictionary<int, int>();
+            int labelCount = 0;
+
             for (int i = 0; i < rows; i++)
             {
                 for (int j = 0; j < columns; j++)
                 {
-                    Node node = new Node(i, j);
-                    var triplet = (redLabels[node], greenLabels[node], blueLabels[node]);
-                    if (!labelTripletToFinal.ContainsKey(triplet))
+                    int pixelIndex = graph.getPixelIndex(i, j);
+                    int root = dsu.Find(pixelIndex);
+                    if (!rootToLabel.ContainsKey(root))
                     {
-                        labelTripletToFinal[triplet] = finalLabelCount++;
+                        rootToLabel[root] = labelCount++;
                     }
-                    finalLabels[node] = labelTripletToFinal[triplet];
+                    labels[pixelIndex] = rootToLabel[root];
                 }
             }
+            return labels;
         }
+
+        private void ComputeFinalSegments()
+        {
+            DSU dsu = new DSU(rows, columns);
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < columns; j++)
+                {
+                    int pixelIndex = graph.getPixelIndex(i, j);
+                    var triplet = (redLabels[pixelIndex], greenLabels[pixelIndex], blueLabels[pixelIndex]);
+
+                    foreach (var neighborIndex in graph.GetNeighbors(i,j))
+                    {
+                        var neighborTriplet = (redLabels[neighborIndex], greenLabels[neighborIndex], blueLabels[neighborIndex]);
+                        if (triplet == neighborTriplet)
+                        {
+                            dsu.Union(pixelIndex, neighborIndex, 0);// No need to consider weight
+                        }
+                    }
+                }
+            }
+
+            finalLabels = AssignLabels(dsu);
+        }
+
         public int getNumberOfSegments()
         {
             return finalLabels.Values.Distinct().Count();
@@ -172,26 +185,29 @@ namespace Segmenetation
                 }
             }
 
+            // Generate and save the segmented image
             RGBPixel[,] outputImage = new RGBPixel[rows, columns];
             Random rand = new Random();
             Dictionary<int, (byte r, byte g, byte b)> labelColors = new Dictionary<int, (byte, byte, byte)>();
 
+            // Assign random colors to each final segment label
             foreach (var label in finalLabels.Values.Distinct())
             {
                 labelColors[label] = ((byte)rand.Next(256), (byte)rand.Next(256), (byte)rand.Next(256));
             }
 
+            // Create the output image matrix
             for (int i = 0; i < rows; i++)
             {
                 for (int j = 0; j < columns; j++)
                 {
-                    Node node = new Node(i, j);
-                    var color = labelColors[finalLabels[node]];
+                    int pixelIndex = graph.getPixelIndex(i, j);
+                    var color = labelColors[finalLabels[pixelIndex]];
                     outputImage[i, j] = new RGBPixel { red = color.r, green = color.g, blue = color.b };
                 }
             }
 
-            // Save the image
+            // Save the image using System.Drawing
             using (Bitmap bitmap = new Bitmap(columns, rows))
             {
                 for (int i = 0; i < rows; i++)
@@ -201,7 +217,8 @@ namespace Segmenetation
                         bitmap.SetPixel(j, i, Color.FromArgb(outputImage[i, j].red, outputImage[i, j].green, outputImage[i, j].blue));
                     }
                 }
-                bitmap.Save(imageFilePath, ImageFormat.Png);
+                bitmap.Save(imageFilePath, ImageFormat.Bmp); // Save as Bmp
+                System.Diagnostics.Process.Start(imageFilePath); // opens image
             }
         }
     }

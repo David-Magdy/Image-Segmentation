@@ -5,74 +5,68 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Drawing.Imaging;
 using ImageTemplate;
-using GraphConstruction;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace Segmenetation
 {
     public class DSU
     {
-        private Dictionary<Node, Node> parent;
-        private Dictionary<Node, int> size;
-        private Dictionary<Node, double> maxInternalEdge; // Tracks the largest edge weight in each component
-
+        private int[] parent;
+        private int[] size;
+        private double[] maxInternalEdge; // Tracks the largest edge weight in each component
+        private int totalPixels;
         public DSU(int rows, int columns)
         {
-            parent = new Dictionary<Node, Node>();
-            size = new Dictionary<Node, int>();
-            maxInternalEdge = new Dictionary<Node, double>();
+            totalPixels = rows * columns;
+            parent = new int[totalPixels];
+            size = new int[totalPixels];
+            maxInternalEdge = new double[totalPixels];
 
             // Initialize each pixel as its own component
-            for (int i = 0; i < rows; i++)
+            for (int i = 0; i < totalPixels; ++i)
             {
-                for (int j = 0; j < columns; j++)
+                parent[i] = i;
+                size[i] = 1;
+                maxInternalEdge[i] = 0.0;
+            }
+        }
+
+        public int Find(int i)
+        {
+            if (parent[i] != i)
+            {
+                parent[i] = Find(parent[i]); // Path compression
+            }
+            return parent[i];
+        }
+        public bool sameComponent(int u, int v)
+        {
+            return Find(u) == Find(v);
+        }
+
+        public void Union(int u, int v, double edgeWeight)
+        {
+            int rootU = Find(u);
+            int rootV = Find(v);
+
+            if (rootU != rootV)
+            {
+                if (size[rootU] < size[rootV])
                 {
-                    Node node = new Node(i, j);
-                    parent[node] = node;
-                    size[node] = 1;
-                    maxInternalEdge[node] = 0.0; // Initially, no edges within a single-pixel component
+                    (rootU, rootV) = (rootV, rootU);
                 }
+                parent[rootV] = rootU;
+                size[rootU] += size[rootV];
+                maxInternalEdge[rootU] = Math.Max(Math.Max(maxInternalEdge[rootU], maxInternalEdge[rootV]), edgeWeight);
             }
         }
 
-        public Node Find(Node x)
-        {
-            if (!parent[x].Equals(x))
-            {
-                parent[x] = Find(parent[x]); // Path compression
-            }
-            return parent[x];
-        }
-        public bool isConnected(Node u, Node v)
-        {
-            u = Find(u);
-            v = Find(v);
-            return u.Equals(v);
-        }
-
-        public void Union(Node x, Node y, double edgeWeight)
-        {
-            Node rootX = Find(x);
-            Node rootY = Find(y);
-
-            if (!isConnected(x, y))
-            {
-                if (size[rootX] < size[rootY])
-                {
-                    (rootX, rootY) = (rootY, rootX);
-                }
-                parent[rootY] = rootX;
-                size[rootX] += size[rootY];
-                maxInternalEdge[rootX] = Math.Max(Math.Max(maxInternalEdge[rootX], maxInternalEdge[rootY]), edgeWeight);
-            }
-        }
-
-        public int GetSize(Node x)
+        public int GetSize(int x)
         {
             return size[Find(x)];
         }
 
-        public double GetMaxInternalEdge(Node x)
+        public double GetMaxInternalEdge(int x)
         {
             return maxInternalEdge[Find(x)];
         }
