@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using ImageTemplate;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 using Seg = Segmentation.Segmentation;
 
 namespace ImageTemplate
@@ -62,16 +63,6 @@ namespace ImageTemplate
                 Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold)
             };
             this.Controls.Add(txtK);
-
-            // Add Label for segment count
-            var lblSegmentCount = new Label
-            {
-                Text = "Segments: 0",
-                Location = new Point(466, 510),
-                Size = new Size(100, 20),
-                Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold)
-            };
-            this.Controls.Add(lblSegmentCount);
 
             // Add TextBox for segment sizes
             txtSegmentSizes = new TextBox
@@ -157,13 +148,21 @@ namespace ImageTemplate
                 return;
             }
 
-            if (segmentation.finalLabels.Count == 0)
-            {
-                BtnSegment_Click(sender, e); // Reuse existing segmentation logic
-            }
-
             try
             {
+                // Start measuring time
+                Stopwatch stopwatch = Stopwatch.StartNew();
+
+                // Run segmentation if not already done
+                if (segmentation.finalLabels.Count == 0)
+                {
+                    BtnSegment_Click(sender, e); // Reuse existing segmentation logic
+                }
+
+                // Stop measuring time
+                stopwatch.Stop();
+                double elapsedSeconds = stopwatch.ElapsedMilliseconds;
+
                 // Use a temporary file to save the segmented image and text output
                 string tempImagePath = System.IO.Path.GetTempFileName() + ".bmp";
                 string tempTextPath = System.IO.Path.GetTempFileName() + ".txt";
@@ -176,16 +175,12 @@ namespace ImageTemplate
                 RGBPixel[,] segmentedImage = ImageOperations.OpenImage(tempImagePath);
                 ImageOperations.DisplayImage(segmentedImage, pictureBox2);
 
-                // Update the segment count label
-                var lblSegmentCount = this.Controls.OfType<Label>().FirstOrDefault(l => l.Text.StartsWith("Segments:"));
-                if (lblSegmentCount != null)
-                {
-                    lblSegmentCount.Text = $"Segments: {segmentCount}";
-                }
-
                 // Display segment sizes in the TextBox
                 var segmentSizes = segmentation.GetSegmentSizes();
                 txtSegmentSizes.Text = $"{segmentCount}\r\n{string.Join("\r\n", segmentSizes)}";
+
+                // Display the elapsed time in a MessageBox
+                MessageBox.Show($"Segmentation completed in {elapsedSeconds:F3} ms", "Segmentation Time");
 
                 // Clean up temporary files
                 System.IO.File.Delete(tempImagePath);

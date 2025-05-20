@@ -34,7 +34,7 @@ namespace Segmentation
             short[,] redChannel = new short[rows, columns];
             short[,] greenChannel = new short[rows, columns];
             short[,] blueChannel = new short[rows, columns];
-            //RGBPixel[,] smoothedImage = ImageMatrix; // for sample test cases
+            // RGBPixel[,] smoothedImage = ImageMatrix; // for sample test cases
             RGBPixel[,] smoothedImage = ImageOperations.GaussianFilter1D(ImageMatrix, filterSize, sigma);
 
             for (int i = 0; i < rows; i++)
@@ -48,7 +48,7 @@ namespace Segmentation
             }
 
             // Segment each channel
-            Parallel.Invoke(
+            Parallel.Invoke (
                 () => redLabels = SegmentChannel(redChannel, k),
                 () => greenLabels = SegmentChannel(greenChannel, k),
                 () => blueLabels = SegmentChannel(blueChannel, k)
@@ -61,9 +61,9 @@ namespace Segmentation
             DSU dsu = new DSU(rows, columns);
             var edges = graph.BuildEdges(channel);
 
-            //edges.Sort((a, b) => a.Weight.CompareTo(b.Weight));
+            // edges.Sort((a, b) => a.Weight.CompareTo(b.Weight));
 
-            //counting sort since weight is in range [0, 255]
+            // counting sort since weight is in range [0, 255]
             List<Edge>[] weights = new List<Edge>[256];
 
             for (int i = 0; i < 256; i++)
@@ -75,7 +75,7 @@ namespace Segmentation
             }
 
             edges.Clear();
-            for (int i = 0; i < 255; i++)
+            for (int i = 0; i < 256; i++)
             {
                 edges.AddRange(weights[i]);
             }
@@ -140,7 +140,7 @@ namespace Segmentation
                         var neighborTriplet = (redLabels[neighborIndex], greenLabels[neighborIndex], blueLabels[neighborIndex]);
                         if (triplet == neighborTriplet)
                         {
-                            dsu.Union(pixelIndex, neighborIndex, 0);// No need to consider weight
+                            dsu.Union(pixelIndex, neighborIndex, 0); // No need to consider weight
                         }
                     }
                 }
@@ -236,7 +236,7 @@ namespace Segmentation
                     }
                 }
                 bitmap.Save(imageFilePath, ImageFormat.Bmp); // Save as Bmp
-                System.Diagnostics.Process.Start(imageFilePath); // opens image
+                // System.Diagnostics.Process.Start(imageFilePath); // opens image
             }
         }
     }
