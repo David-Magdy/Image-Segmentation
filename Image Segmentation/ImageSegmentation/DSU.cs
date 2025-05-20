@@ -1,11 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Drawing;
-using System.Windows.Forms;
-using System.Drawing.Imaging;
-using ImageTemplate;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Segmenetation
 {

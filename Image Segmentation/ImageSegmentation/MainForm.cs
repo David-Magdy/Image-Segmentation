@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using ImageTemplate;
@@ -164,8 +165,8 @@ namespace ImageTemplate
                 double elapsedSeconds = stopwatch.ElapsedMilliseconds;
 
                 // Use a temporary file to save the segmented image and text output
-                string tempImagePath = System.IO.Path.GetTempFileName() + ".bmp";
-                string tempTextPath = System.IO.Path.GetTempFileName() + ".txt";
+                string tempImagePath = Path.Combine(Directory.GetCurrentDirectory(), "tempImage.bmp");
+                string tempTextPath = Path.Combine(Directory.GetCurrentDirectory(), "tempText.txt");
 
                 // Save the segmentation results
                 int segmentCount = segmentation.getNumberOfSegments();

@@ -64,6 +64,7 @@ namespace Segmentation
             // edges.Sort((a, b) => a.Weight.CompareTo(b.Weight));
 
             // counting sort since weight is in range [0, 255]
+            //
             List<Edge>[] weights = new List<Edge>[256];
 
             for (int i = 0; i < 256; i++)
@@ -105,7 +106,6 @@ namespace Segmentation
         private Dictionary<int, int> AssignLabels(DSU dsu)
         {
             var labels = new Dictionary<int, int>();
-            var rootToLabel = new Dictionary<int, int>();
             int labelCount = 0;
 
             for (int i = 0; i < rows; i++)
@@ -114,11 +114,11 @@ namespace Segmentation
                 {
                     int pixelIndex = graph.getPixelIndex(i, j);
                     int root = dsu.Find(pixelIndex);
-                    if (!rootToLabel.ContainsKey(root))
+                    if (!labels.ContainsKey(root))
                     {
-                        rootToLabel[root] = labelCount++;
+                        labels[root] = labelCount++;
                     }
-                    labels[pixelIndex] = rootToLabel[root];
+                    labels[pixelIndex] = labels[root];
                 }
             }
             return labels;
@@ -176,22 +176,8 @@ namespace Segmentation
 
         public void SaveOutput(string textFilePath, string imageFilePath)
         {
-            // Count segments and sizes
-            Dictionary<int, int> segmentSizes = new Dictionary<int, int>();
-            foreach (var label in finalLabels.Values)
-            {
-                if (segmentSizes.ContainsKey(label))
-                {
-                    segmentSizes[label]++;
-                }
-                else
-                {
-                    segmentSizes[label] = 1;
-                }
-            }
 
-            // Sort segments by size
-            var sortedSegments = segmentSizes.OrderByDescending(x => x.Value).ToList();
+            var sortedSegments = GetSegmentSizes();
 
             // Write to text file
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(textFilePath))
@@ -199,7 +185,7 @@ namespace Segmentation
                 file.WriteLine(sortedSegments.Count);
                 foreach (var segment in sortedSegments)
                 {
-                    file.WriteLine(segment.Value);
+                    file.WriteLine(segment.ToString());
                 }
             }
 
