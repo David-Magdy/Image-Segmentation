@@ -32,10 +32,6 @@ namespace Segmenetation
             }
             return parent[i];
         }
-        public bool sameComponent(int u, int v)
-        {
-            return Find(u) == Find(v);
-        }
 
         public void Union(int u, int v, double edgeWeight)
         {
