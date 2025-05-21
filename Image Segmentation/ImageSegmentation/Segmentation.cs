@@ -6,6 +6,8 @@ using System.Drawing.Imaging;
 using ImageTemplate;
 using System.Threading.Tasks;
 using Segmenetation;
+using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace Segmentation
 {
@@ -16,16 +18,17 @@ namespace Segmentation
         public int rows, columns;
         public RGBPixel[,] ImageMatrix { get; set; }
         private Graph graph;
-
+        Stopwatch stopWatch;
         public Segmentation()
         {
             redLabels = new Dictionary<int, int>();
             greenLabels = new Dictionary<int, int>();
             blueLabels = new Dictionary<int, int>();
             finalLabels = new Dictionary<int, int>();
+            stopWatch = new Stopwatch();
         }
 
-        public void Segment(double sigma, double k, int filterSize = 5)
+        public void Segment(RGBPixel[,] smoothedImage, double k)
         {
             rows = ImageMatrix.GetLength(0);
             columns = ImageMatrix.GetLength(1);
@@ -34,8 +37,7 @@ namespace Segmentation
             short[,] redChannel = new short[rows, columns];
             short[,] greenChannel = new short[rows, columns];
             short[,] blueChannel = new short[rows, columns];
-            // RGBPixel[,] smoothedImage = ImageMatrix; // for sample test cases
-            RGBPixel[,] smoothedImage = ImageOperations.GaussianFilter1D(ImageMatrix, filterSize, sigma);
+            // smoothedImage = ImageMatrix; // for sample test cases
 
             for (int i = 0; i < rows; i++)
             {
@@ -46,7 +48,7 @@ namespace Segmentation
                     blueChannel[i, j] = smoothedImage[i, j].blue;
                 }
             }
-
+            stopWatch.Start();
             // Segment each channel
             Parallel.Invoke (
                 () => redLabels = SegmentChannel(redChannel, k),
@@ -179,6 +181,20 @@ namespace Segmentation
 
             var sortedSegments = GetSegmentSizes();
 
+            // Generate and save the segmented image
+            Random rand = new Random();
+            Dictionary<int, (byte r, byte g, byte b)> labelColors = new Dictionary<int, (byte, byte, byte)>();
+
+            // Assign random colors to each final segment label
+            foreach (var label in finalLabels.Values.Distinct())
+            {
+                labelColors[label] = ((byte)rand.Next(256), (byte)rand.Next(256), (byte)rand.Next(256));
+            }
+
+            stopWatch.Stop();
+            long elapsedSeconds = stopWatch.ElapsedMilliseconds;
+            MessageBox.Show($"Segmentation completed in {elapsedSeconds:F3} ms", "Segmentation Time");
+
             // Write to text file
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(textFilePath))
             {
@@ -189,18 +205,9 @@ namespace Segmentation
                 }
             }
 
-            // Generate and save the segmented image
-            RGBPixel[,] outputImage = new RGBPixel[rows, columns];
-            Random rand = new Random();
-            Dictionary<int, (byte r, byte g, byte b)> labelColors = new Dictionary<int, (byte, byte, byte)>();
-
-            // Assign random colors to each final segment label
-            foreach (var label in finalLabels.Values.Distinct())
-            {
-                labelColors[label] = ((byte)rand.Next(256), (byte)rand.Next(256), (byte)rand.Next(256));
-            }
-
             // Create the output image matrix
+            RGBPixel[,] outputImage = new RGBPixel[rows, columns];
+
             for (int i = 0; i < rows; i++)
             {
                 for (int j = 0; j < columns; j++)
@@ -222,7 +229,7 @@ namespace Segmentation
                     }
                 }
                 bitmap.Save(imageFilePath, ImageFormat.Bmp); // Save as Bmp
-                 System.Diagnostics.Process.Start(imageFilePath); // opens image
+                 //System.Diagnostics.Process.Start(imageFilePath); // opens image
             }
         }
     }

@@ -16,7 +16,6 @@ namespace ImageTemplate
         private Seg segmentation;
         private TextBox txtSegmentSigma, txtK, txtSegmentSizes;
         private Label lblSegmentSigma, lblK;
-
         public RGBPixel[,] ImageMatrix;
 
         public MainForm()
@@ -130,9 +129,9 @@ namespace ImageTemplate
                     MessageBox.Show("Invalid k value. Please enter a positive number.", "Error");
                     return;
                 }
-
-                segmentation.ImageMatrix = ImageMatrix;
-                segmentation.Segment(sigma, k);
+                int filterSize = 5;
+                RGBPixel[,] smoothedImage = ImageOperations.GaussianFilter1D(ImageMatrix, filterSize, sigma);
+                segmentation.Segment(smoothedImage, k);
                 MessageBox.Show("Segmentation completed!", "Success");
             }
             catch (Exception ex)
@@ -151,16 +150,12 @@ namespace ImageTemplate
 
             try
             {
-                Stopwatch stopwatch = Stopwatch.StartNew();
 
                 if (segmentation.finalLabels.Count == 0)
                 {
                     BtnSegment_Click(sender, e);
                 }
 
-                stopwatch.Stop();
-                long time = stopwatch.ElapsedMilliseconds;
-                MessageBox.Show($"Segmentation completed in {time:F3} ms", "Segmentation Time");
 
                 string tempImagePath = Path.Combine(Directory.GetCurrentDirectory(), "tempImage.bmp");
                 string tempTextPath = Path.Combine(Directory.GetCurrentDirectory(), "tempText.txt");
