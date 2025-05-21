@@ -151,24 +151,20 @@ namespace ImageTemplate
 
             try
             {
-                // Start measuring time
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                // Run segmentation if not already done
                 if (segmentation.finalLabels.Count == 0)
                 {
-                    BtnSegment_Click(sender, e); // Reuse existing segmentation logic
+                    BtnSegment_Click(sender, e);
                 }
 
-                // Stop measuring time
                 stopwatch.Stop();
-                double elapsedSeconds = stopwatch.ElapsedMilliseconds;
+                long time = stopwatch.ElapsedMilliseconds;
+                MessageBox.Show($"Segmentation completed in {time:F3} ms", "Segmentation Time");
 
-                // Use a temporary file to save the segmented image and text output
                 string tempImagePath = Path.Combine(Directory.GetCurrentDirectory(), "tempImage.bmp");
                 string tempTextPath = Path.Combine(Directory.GetCurrentDirectory(), "tempText.txt");
 
-                // Save the segmentation results
                 int segmentCount = segmentation.getNumberOfSegments();
                 segmentation.SaveOutput(tempTextPath, tempImagePath);
 
@@ -179,13 +175,6 @@ namespace ImageTemplate
                 // Display segment sizes in the TextBox
                 var segmentSizes = segmentation.GetSegmentSizes();
                 txtSegmentSizes.Text = $"{segmentCount}\r\n{string.Join("\r\n", segmentSizes)}";
-
-                // Display the elapsed time in a MessageBox
-                MessageBox.Show($"Segmentation completed in {elapsedSeconds:F3} ms", "Segmentation Time");
-
-                // Clean up temporary files
-                System.IO.File.Delete(tempImagePath);
-                System.IO.File.Delete(tempTextPath);
             }
             catch (Exception ex)
             {

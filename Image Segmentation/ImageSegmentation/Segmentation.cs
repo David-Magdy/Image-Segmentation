@@ -222,7 +222,7 @@ namespace Segmentation
                     }
                 }
                 bitmap.Save(imageFilePath, ImageFormat.Bmp); // Save as Bmp
-                // System.Diagnostics.Process.Start(imageFilePath); // opens image
+                 System.Diagnostics.Process.Start(imageFilePath); // opens image
             }
         }
     }
