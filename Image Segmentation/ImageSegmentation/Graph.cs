@@ -41,6 +41,8 @@ namespace Segmentation
         public List<Edge> BuildEdges(short[,] channel)
         {
             var edges = new List<Edge>();
+
+            // down, down left, down right, right
             short[] dx = { 1, 1, 1, 0 };
             short[] dy = { 0, 1, -1, 1 };
 
@@ -70,7 +72,6 @@ namespace Segmentation
         {
             var neighbors = new List<int>();
 
-            // down, down left, down right, right
             short[] dx = { 1, 1, 1, 0 };
             short[] dy = { 0, -1, 1, 1 };
 

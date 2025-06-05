@@ -66,7 +66,6 @@ namespace Segmentation
             // edges.Sort((a, b) => a.Weight.CompareTo(b.Weight));
 
             // counting sort since weight is in range [0, 255]
-            //
             List<Edge>[] weights = new List<Edge>[256];
 
             for (int i = 0; i < 256; i++)
@@ -192,8 +191,8 @@ namespace Segmentation
             }
 
             stopWatch.Stop();
-            long elapsedSeconds = stopWatch.ElapsedMilliseconds;
-            MessageBox.Show($"Segmentation completed in {elapsedSeconds:F3} ms", "Segmentation Time");
+            long timeTaken = stopWatch.ElapsedMilliseconds;
+            MessageBox.Show($"Segmentation completed in {timeTaken:F3} ms", "Segmentation Time");
 
             // Write to text file
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(textFilePath))
