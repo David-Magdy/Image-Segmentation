@@ -58,10 +58,10 @@ The segmentation algorithm follows these steps:
 Below are example images showing the input and output of the segmentation process:
 
 - **Example 1**
-  ![image]("./Image Segmentation/ImageSegmentation/Images/Figure_1.png")
+  ![image]("/Images/Figure_1.png")
 
 - **Example 2**
-  ![image_2]("./Image Segmentation/ImageSegmentation/Images/Figure_2.png")
+  ![image_2]("/Images/Figure_2.png")
 
 
 ## License
