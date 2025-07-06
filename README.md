@@ -44,7 +44,7 @@ The segmentation algorithm follows these steps:
 ## Building and Running
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone "https://github.com/David-Magdy/Image-Segmentation"
    ```
 2. Open the solution in Visual Studio.
 3. Build and run the project to launch the Windows Forms application.
