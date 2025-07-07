@@ -65,6 +65,10 @@ Below are example images showing the input and output of the segmentation proces
   
   ![Example_2](Images/Figure_2.png)
 
+- **Example 3**
+  
+  ![Example_3](Images/Figure_3.png)
+
 
 ## License
 This project is licensed under the MIT License.
