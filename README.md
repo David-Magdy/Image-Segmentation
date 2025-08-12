@@ -27,7 +27,7 @@ The segmentation algorithm follows these steps:
 2. **Load an Image**: Click the "Open" button to select an image file.
 3. **Set Parameters**:
    - **Sigma**: Controls the Gaussian filter's spread (default: 0.8).
-   - **k**: Controls the segmentation granularity (default: 300; higher values produce larger segments).
+   - **k**: Controls the segmentation granularity (default: 300 , higher values produce larger segments).
 4. **Segment the Image**: Click the "Segment" button to process the image.
 5. **View Results**: Click the "Show" button to display the segmented image and segment sizes. The segmented image is saved as `tempImage.bmp`, and segment sizes are saved as `tempText.txt`.
 
